@@ -28,8 +28,8 @@ public class Server {
             outPlayer1 = new PrintWriter(player1.getOutputStream(), true);
             outPlayer2 = new PrintWriter(player2.getOutputStream(), true);
 
-            new Thread(new ClientHandler(player1, 'X', outPlayer2)).start();
-            new Thread(new ClientHandler(player2, 'O', outPlayer1)).start();
+            new Thread(new ClientHandler(player1, 'X', outPlayer2, outPlayer1)).start();
+            new Thread(new ClientHandler(player2, 'O', outPlayer1, outPlayer2)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -40,18 +40,19 @@ public class Server {
         private char player;
         private BufferedReader in;
         private PrintWriter outOpponent;
+        private PrintWriter outSelf;
 
-        public ClientHandler(Socket socket, char player, PrintWriter outOpponent) {
+        public ClientHandler(Socket socket, char player, PrintWriter outOpponent, PrintWriter outSelf) {
             this.socket = socket;
             this.player = player;
             this.outOpponent = outOpponent;
+            this.outSelf = outSelf;
         }
 
         @Override
         public void run() {
             try {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                 String input;
 
                 while ((input = in.readLine()) != null) {
@@ -63,18 +64,18 @@ public class Server {
                     try {
                         if (board[x][y] == 0 && currentPlayer == player) {
                             board[x][y] = player == 'X' ? 1 : 2;
-                            out.println(x + " " + y + " true");
+                            outSelf.println(x + " " + y + " true");
                             outOpponent.println(x + " " + y + " false");
 
                             if (isWinner(x, y)) {
-                                out.println("You win!");
+                                outSelf.println("You win!");
                                 outOpponent.println("You lose!");
                                 break;
                             }
 
                             currentPlayer = (currentPlayer == 'X') ? 'O' : 'X';
                         } else {
-                            out.println("Invalid move");
+                            outSelf.println("Invalid move");
                         }
                     } finally {
                         lock.unlock();
@@ -97,7 +98,7 @@ public class Server {
             for (int i = 1; i < 5; i++) {
                 int nx = x + i * dx;
                 int ny = y + i * dy;
-                if (nx >= 0 && nx < 15 && ny >= 0 && ny < 15 && board[nx][ny] == (currentPlayer == 'X' ? 1 : 2)) {
+                if (nx >= 0 && nx < 15 && ny >= 0 && ny < 15 && board[nx][ny] == (player == 'X' ? 1 : 2)) {
                     count++;
                 } else {
                     break;
@@ -106,7 +107,7 @@ public class Server {
             for (int i = 1; i < 5; i++) {
                 int nx = x - i * dx;
                 int ny = y - i * dy;
-                if (nx >= 0 && nx < 15 && ny >= 0 && ny < 15 && board[nx][ny] == (currentPlayer == 'X' ? 1 : 2)) {
+                if (nx >= 0 && nx < 15 && ny >= 0 && ny < 15 && board[nx][ny] == (player == 'X' ? 1 : 2)) {
                     count++;
                 } else {
                     break;

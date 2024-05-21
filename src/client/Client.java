@@ -28,9 +28,9 @@ public class Client {
 
             System.out.println(playerName + " connected to server");
 
-            // 자신과 상대방의 돌 색상 지정 (임의로 흰색과 검은색 사용)
-            Color ownColor = Color.BLACK;
-            Color opponentColor = Color.WHITE;
+            // 자신과 상대방의 돌 색상 지정 (임의로 검은색과 흰색 사용)
+            Color ownColor = playerName.equals("Player1") ? Color.BLACK : Color.WHITE;
+            Color opponentColor = playerName.equals("Player1") ? Color.WHITE : Color.BLACK;
 
             board = new Board(this, ownColor, opponentColor, playerName);
             new Thread(new ServerListener()).start();
